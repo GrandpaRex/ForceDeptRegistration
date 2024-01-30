@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using CitizenFX.Core;
 using FivePD.API;
 using FivePD.API.Utils;
-using static CitizenFX.Core.Native.API;
 using Newtonsoft.Json.Linq;
+using static CitizenFX.Core.Native.API;
 
 #pragma warning disable 1998
 namespace ForceDeptReg
@@ -13,60 +13,40 @@ namespace ForceDeptReg
     {
         internal Main()
         {
-            _ = Initialize();
-            
-        }
-
-        internal async Task Initialize()
-        {
-            TriggerServerEvent("FivePD::Allowlist::IsPlayerAllowed", new Action<bool>(allowed =>
-            {
-                if (allowed)
-                {
-                    _ = DeptReg();
-                }
-            }));
-        }
-
-        internal async Task DeptReg()
-        {
             try
             {
-                JToken id = JObject.Parse(LoadResourceFile(GetCurrentResourceName(), "config/callouts.json"))["deptid"];
-                bool check = int.TryParse((string)id, out int result);
-
-                if (id != null)
+                JObject _config = JObject.Parse(LoadResourceFile(GetCurrentResourceName(), "./config/callout.json"));
+                string config = (string)_config["deptid"];
+                bool goodConfig = int.TryParse(config, out int configDep);
+                int deparmentID = Utilities.GetPlayerData().DepartmentID;
+                if (goodConfig)
                 {
-                    if (check == true)
+                    TriggerServerEvent("FivePD::Allowlist::IsPlayerAllowed", new Action<bool>(allowed =>
                     {
-                        int deparmentID = Utilities.GetPlayerData().DepartmentID;
-                        PlayerData playerData = new PlayerData()
+                        if (allowed)
                         {
-                            DepartmentID = result
-
-                        };
-                        if (deparmentID < 1)
-                        {
-                            Task task = Utilities.SetPlayerData(playerData, Utilities.SetPlayerDataFlags.DepartmentID);
-                        };
-                    }
-                    else
-                    {
-                        Debug.WriteLine("[ ^5forcedept ^7]^1 Invalid deparment id^7 - Please use numbers only!");
-                    }
+                            PlayerData playerData = new PlayerData()
+                            {
+                                DepartmentID = configDep
+                            };
+                            if (deparmentID < 1)
+                            {
+                                Utilities.SetPlayerData(playerData, Utilities.SetPlayerDataFlags.DepartmentID);
+                            };
+                        }
+                    }));
                 }
                 else
                 {
-                    Debug.WriteLine("[ ^5forcedept ^7]^1 Plugin diabled^7 - No forcedept config found, please check the readme to configure!");
-                    
+                    Debug.WriteLine("[ ^5forcedept ^7]^1 Plugin diabled^7 - No forcedept config found or ^1 Invalid deparment id^7 - Please use numbers only!");
                 }
-                }
-            catch (Exception e)
-            {
-                Debug.WriteLine("[ ^5forcedept ^7] Could not read the config file");
-                Debug.WriteLine(e.ToString());
             }
-
+            catch (Exception ex)
+            {
+                Debug.WriteLine("\n[ ^5forcedept ^7] Could not read the config file");
+                Debug.WriteLine($"\n{ex}");
+            }
+            
         }
     }
 }
