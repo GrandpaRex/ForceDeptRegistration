@@ -13,11 +13,16 @@ namespace ForceDeptReg
     {
         internal Main()
         {
+            _ = Init();
+        }
+
+        internal async Task Init()
+        {
             try
             {
-                JObject _config = JObject.Parse(LoadResourceFile(GetCurrentResourceName(), "./config/callout.json"));
-                string config = (string)_config["deptid"];
-                bool goodConfig = int.TryParse(config, out int configDep);
+                JObject _config = JObject.Parse(LoadResourceFile(GetCurrentResourceName(), "config/callouts.json"));
+                var configSelect = _config["deptid"];
+                bool goodConfig = int.TryParse((string)configSelect, out int configDep);
                 int deparmentID = Utilities.GetPlayerData().DepartmentID;
                 if (goodConfig)
                 {
@@ -46,7 +51,6 @@ namespace ForceDeptReg
                 Debug.WriteLine("\n[ ^5forcedept ^7] Could not read the config file");
                 Debug.WriteLine($"\n{ex}");
             }
-            
         }
     }
 }
